@@ -41,19 +41,19 @@
           </div>
           <h2 class="text-base font-bold text-neutral-900 mb-3">1. 選擇擬聘職位與院內門檻規範</h2>
           
-<select id="roleSelect" onchange="loadRoleTemplate()" class="w-full text-sm border border-neutral-300 rounded-lg p-2.5 bg-neutral-50 font-medium focus:ring-2 focus:ring-[#E60012] focus:outline-none mb-3">
-  <option value="rd_engineer">研發工程師</option>
-  <option value="deputy_rd">副研發工程師</option>
-  <option value="assistant_rd">助理研發工程師</option>
-  <option value="algo_engineer">演算法工程師</option>
-  <option value="clinical_data_analyst">臨床數據分析師</option>
-  <option value="junior_clinical_analyst">初級臨床數據分析師</option>
-  <option value="senior_data_scientist">高階應用資料科學家</option>
-  <option value="mid_data_scientist">中階應用資料科學家</option>
-  <option value="junior_data_scientist">初階應用資料科學家</option>
-  <option value="pm">專案經理 / 專案評估員 (管理類)</option>
-  <option value="custom">自訂審核條款與資格條件...</option>
-</select>
+          <select id="roleSelect" onchange="loadRoleTemplate()" class="w-full text-sm border border-neutral-300 rounded-lg p-2.5 bg-neutral-50 font-medium focus:ring-2 focus:ring-[#E60012] focus:outline-none mb-3">
+            <option value="rd_engineer">研發工程師</option>
+            <option value="deputy_rd">副研發工程師</option>
+            <option value="assistant_rd">助理研發工程師</option>
+            <option value="algo_engineer">演算法工程師</option>
+            <option value="clinical_data_analyst">臨床數據分析師</option>
+            <option value="junior_clinical_analyst">初級臨床數據分析師</option>
+            <option value="senior_data_scientist">高階應用資料科學家</option>
+            <option value="mid_data_scientist">中階應用資料科學家</option>
+            <option value="junior_data_scientist">初階應用資料科學家</option>
+            <option value="pm">專案經理 / 專案評估員 (管理類)</option>
+            <option value="custom">自訂審核條款與資格條件...</option>
+          </select>
 
           <textarea id="rulesInput" class="w-full h-28 text-xs font-mono p-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700 focus:bg-white focus:ring-2 focus:ring-[#E60012] focus:outline-none transition"></textarea>
         </div>
@@ -80,8 +80,8 @@
             <div>
               <label class="block font-semibold text-neutral-700 mb-1">聘任類別 / 經費來源</label>
               <select id="appointmentType" class="w-full p-2 border border-neutral-200 rounded-lg bg-white font-medium focus:ring-2 focus:ring-[#E60012] focus:outline-none">
-                <option value="deepen">深耕計畫聘 (教育部高等教育深耕專案)</option>
-                <option value="hospital">院聘 (本院編制)</option>
+                <option value="hospital">院聘</option>
+                <option value="deepen">深耕計畫聘 </option>
               </select>
             </div>
 
@@ -91,15 +91,13 @@
             </div>
 
             <div id="dropZone" class="border-2 border-dashed border-neutral-300 rounded-xl p-4 text-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
-  <!-- 加入 multiple 屬性，支援多檔選擇 -->
-  <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.docx,image/*" multiple onchange="handleFileUpload(this.files)">
-  <div onclick="document.getElementById('fileInput').click()">
-    <p class="text-xs font-bold text-neutral-700">點擊上傳或將履歷/論文/證照檔案拖曳至此</p>
-    <p class="text-[10px] text-neutral-400 mt-1">支援多檔案拖曳上傳 (PDF / Word / TXT / 圖片)</p>
-  </div>
-  <!-- 檔案列表顯示區 -->
-  <div id="fileList" class="mt-2 text-left space-y-1 text-[11px] text-[#E60012] font-mono"></div>
-</div>
+              <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.docx,image/*" multiple onchange="handleFileUpload(this.files)">
+              <div onclick="document.getElementById('fileInput').click()">
+                <p class="text-xs font-bold text-neutral-700">點擊上傳或將履歷/論文/證照檔案拖曳至此</p>
+                <p class="text-[10px] text-neutral-400 mt-1">支援多檔案拖曳上傳 (PDF / Word / TXT / 圖片)</p>
+              </div>
+              <div id="fileList" class="mt-2 text-left space-y-1 text-[11px] text-[#E60012] font-mono"></div>
+            </div>
           </div>
 
           <button onclick="executeAudit()" class="w-full mt-5 btn-nintendo-red font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2">
@@ -187,7 +185,6 @@
     }
   }
 
-  // 單一檔案讀取為 Promise (確保排序正確)
   function processFile(file, index) {
     return new Promise((resolve) => {
       if (file.type === "application/pdf") {
@@ -219,7 +216,6 @@
     });
   }
 
-  // 按正確順序處理所有上傳檔案
   async function handleFileUpload(files) {
     if (!files.length) return;
     
@@ -227,32 +223,49 @@
     fileListContainer.innerHTML = ''; 
     const fileArray = Array.from(files);
 
-    // 1. 呈現在地檔案清單
     fileArray.forEach((file, index) => {
       const item = document.createElement('div');
       item.innerText = `📄 [附件 ${index + 1}] ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
       fileListContainer.appendChild(item);
     });
 
-    // 2. 按 1 ~ N 順序依序解析文字並填入框內
     document.getElementById('candidateInput').value = '正在依序解析檔案內容，請稍候...';
     const promises = fileArray.map((file, idx) => processFile(file, idx));
     const results = await Promise.all(promises);
     document.getElementById('candidateInput').value = results.join('\n');
   }
 
-  function executeAudit() {
+  // 🤖 呼叫 Gemini API
+  async function callGeminiAPI(apiKey, prompt) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || 'API 請求失敗');
+      return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+      alert('Gemini AI 連線失敗：' + error.message);
+      return null;
+    }
+  }
+
+  // 🚀 執行資格核對與生成公文
+  async function executeAudit() {
     const name = document.getElementById('candidateName').value || '應徵者';
     const dept = document.getElementById('candidateDept').value || '人工智慧暨機器人創新中心';
     const type = document.getElementById('appointmentType').value;
     const typeText = type === 'deepen' ? '深耕計畫聘 (高教深耕專案)' : '院聘 (本院編制)';
     const fundText = type === 'deepen' ? '教育部高等教育深耕計畫（AIRIC 分項專案）年度預算項下支應' : '本中心/本院統籌業務及人資預算費用項下支應';
 
-    // 抓取選單目前的職稱名稱
     const roleSelect = document.getElementById('roleSelect');
     const roleText = roleSelect.options[roleSelect.selectedIndex].text.split('(')[0].trim();
+    const rules = document.getElementById('rulesInput').value;
+    const candidateInfo = document.getElementById('candidateInput').value;
 
-    // 動態取得當前日期 (民國年)
     const today = new Date();
     const rocYear = today.getFullYear() - 1911;
     const dateStr = `${rocYear} 年 ${today.getMonth() + 1} 月 ${today.getDate()} 日`;
@@ -263,7 +276,8 @@
     const badge = document.getElementById('resultBadge');
     const overview = document.getElementById('auditOverview');
     const matrix = document.getElementById('auditMatrix');
-    const doc = document.getElementById('docOutput');
+    const docOutput = document.getElementById('docOutput');
+    const apiKey = localStorage.getItem('AIRIC_GEMINI_KEY');
 
     if (isPass) {
       badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
@@ -290,8 +304,46 @@
         </div>
       `;
 
-      // 套用您指定的公文範本與自動帶入邏輯
-      doc.innerText = `簽 於 人工智慧暨機器人創新中心 中華民國 ${dateStr}\n\n主旨：因應中心發展，擬請同意聘任 ${name} 先生/女士為 ${roleText}，呈請核示。\n\n說明：\n一、聘任人員背景與專業能力：查 ${name} 先生/女士具備符合本院規範之專業技術背景與相關經歷。\n二、相關成果敘述：經比對其檢附之資料與作品證明，均符合院內新聘進用門檻規定。\n三、${name} 先生/女士專業能力與本中心持續推動智慧醫療系統研發之需求高度契合。為強化本中心專業團隊戰力，擬請同意聘任 ${name} 先生/女士為 [自行填寫] 職等 ${roleText}（採「${typeText}」辦理，所需費用由「${fundText}」支應）。\n四、相關學經歷證明文件如附件。\n\n擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。`;
+      // 💡 有 API Key 則由 AI 精準提煉，無則帶入預設範本
+      if (apiKey) {
+        docOutput.innerText = '🤖 Gemini AI 正在精準分析履歷並自動撰寫公文簽呈中，請稍候...';
+
+        const prompt = `
+你是一位專業的醫療院所人資與行政主管，請根據以下資訊撰寫一份標準的院內簽呈。
+
+【擬聘單位】：${dept}
+【應徵者姓名】：${name}
+【擬聘職稱】：${roleText}
+【聘任類型】：${typeText}
+【預算支應】：${fundText}
+【進用門檻規範】：
+${rules}
+
+【應徵者履歷與附件資料】：
+${candidateInfo}
+
+【簽呈格式要求】：
+簽 於 人工智慧暨機器人創新中心 中華民國 ${dateStr}
+
+主旨：因應中心發展，擬請同意聘任 ${name} 先生/女士為 ${roleText}，呈請核示。
+
+說明：
+一、聘任人員背景與專業能力：（請詳細摘要 ${name} 先生/女士的學歷與關鍵專業經歷）
+二、相關成果敘述：（請詳細摘要 ${name} 先生/女士的研究成果、論文發表或獲獎作品集）
+三、${name} 先生/女士專業能力與本中心持續推動智慧醫療系統研發之需求高度契合。為強化本中心專業團隊戰力，擬請同意聘任 ${name} 先生/女士為 [自行填寫] 職等 ${roleText}（採「${typeText}」辦理，所需費用由「${fundText}」支應）。
+四、相關學經歷證明文件如附件。
+
+擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。
+
+請直接輸出公文內文，不要添加 Markdown 標籤或額外開場白。
+`;
+
+        const aiResult = await callGeminiAPI(apiKey, prompt);
+        if (aiResult) docOutput.innerText = aiResult;
+
+      } else {
+        docOutput.innerText = `簽 於 人工智慧暨機器人創新中心 中華民國 ${dateStr}\n\n主旨：因應中心發展，擬請同意聘任 ${name} 先生/女士為 ${roleText}，呈請核示。\n\n說明：\n一、聘任人員背景與專業能力：查 ${name} 先生/女士具備符合本院規範之專業技術背景與相關經歷。\n二、相關成果敘述：經比對其檢附之資料與作品證明，均符合院內新聘進用門檻規定。\n三、${name} 先生/女士專業能力與本中心持續推動智慧醫療系統研發之需求高度契合。為強化本中心專業團隊戰力，擬請同意聘任 ${name} 先生/女士為 [自行填寫] 職等 ${roleText}（採「${typeText}」辦理，所需費用由「${fundText}」支應）。\n四、相關學經歷證明文件如附件。\n\n擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。`;
+      }
 
     } else {
       badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-rose-100 text-rose-800';
@@ -314,7 +366,7 @@
         </div>
       `;
 
-      doc.innerText = `人工智慧暨機器人創新中心 (AIRIC) 新聘人員進用審核補件通知單\n\n受文者：${name} 臺端\n日期：中華民國 ${dateStr}\n\n主旨：關於 臺端應徵本中心 ${roleText} 乙案，經本中心進用資格審核小組比對相關資料，尚有缺失項目，特此通知補件。\n\n說明：\n一、依本中心「${typeText}」審核標準，臺端目前缺漏或未達標之資料如下：\n    1. 請補充相關學經歷證明或成果作品集文件。\n二、請於收到通知後 7 日內將上述資料補齊電子檔並回傳，以利重審本聘任案。`;
+      docOutput.innerText = `人工智慧暨機器人創新中心 (AIRIC) 新聘人員進用審核補件通知單\n\n受文者：${name} 臺端\n日期：中華民國 ${dateStr}\n\n主旨：關於 臺端應徵本中心 ${roleText} 乙案，經本中心進用資格審核小組比對相關資料，尚有缺失項目，特此通知補件。\n\n說明：\n一、依本中心「${typeText}」審核標準，臺端目前缺漏或未達標之資料如下：\n    1. 請補充相關學經歷證明或成果作品集文件。\n二、請於收到通知後 7 日內將上述資料補齊電子檔並回傳，以利重審本聘任案。`;
     }
   }
 
