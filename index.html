@@ -235,9 +235,9 @@
     document.getElementById('candidateInput').value = results.join('\n');
   }
 
-// 🤖 呼叫 Gemini API (使用最新模型)
+// 🤖 呼叫 Gemini API (使用長期支援且穩定的 gemini-1.5-flash)
   async function callGeminiAPI(apiKey, prompt) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     try {
       const response = await fetch(url, {
         method: 'POST',
