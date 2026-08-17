@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+:root {
+  --nintendo-red: #E60012;
+  --nintendo-orange: #FF5B22;
+  --nintendo-dark: #0F0F10;
+  --nintendo-gray: #F4F4F6;
+}
+
+body {
+  font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--nintendo-gray);
+  color: var(--nintendo-dark);
+}
+
+.card-nintendo {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border-radius: 1rem;
+}
+
+.btn-nintendo-red {
+  background-color: var(--nintendo-red);
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.btn-nintendo-red:hover {
+  background-color: #cc0010;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.25);
+}
+
+.seal-stamp {
+  border: 2px solid #A82323;
+  color: #A82323;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
+  display: inline-block;
+  transform: rotate(-3deg);
+}
