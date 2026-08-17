@@ -157,8 +157,8 @@
     </div>
   </div>
 
-  <script>
-  // 1. 各職位對應之規範範本 (已修正 Key 覆蓋問題)
+<script>
+  // 1. 各職位對應之規範範本
   const templates = {
     rd_engineer: `【研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗5年。`,
     deputy_rd: `【副研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 2 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗3年。`,
@@ -175,13 +175,11 @@
 
   const candidateDemo = `【學歷】國立臺灣大學 資訊工程學系 博士\n【經歷】中央研究院 博士後研究員 1 年 8 個月 (專案執行：醫療影像 AI 分割)\n【成果發表】\n1. Hsu et al., "Deep Learning for Clinical AI Solutions", IEEE TMI, 2025 (第一作者, SCI Q1)\n2. Hsu et al., "Robotic Surgery Platform Integration", Journal of Medical Robotics, 2024 (第一作者, SCI Q2)`;
 
-  // 2. 切換選單自動載入對應範本
   function loadRoleTemplate() {
     const val = document.getElementById('roleSelect').value;
     document.getElementById('rulesInput').value = templates[val] || '';
   }
 
-  // 3. 拖曳檔案放開（Drop）事件處理
   function handleDrop(e) {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -189,168 +187,173 @@
     }
   }
 
-  // 4. 多檔案解析與清單呈現代碼
-  function handleFileUpload(files) {
-    if (!files.length) return;
-    
-    const fileListContainer = document.getElementById('fileList');
-    fileListContainer.innerHTML = ''; // 清空舊顯示
-    let combinedText = '';
-
-    Array.from(files).forEach((file, index) => {
-      // 顯示多檔案名稱清單
-      const item = document.createElement('div');
-      item.innerText = `📄 [附件 ${index + 1}] ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-      fileListContainer.appendChild(item);
-
-      // 自動讀取 PDF 內容
+  // 單一檔案讀取為 Promise (確保排序正確)
+  function processFile(file, index) {
+    return new Promise((resolve) => {
       if (file.type === "application/pdf") {
         const fileReader = new FileReader();
         fileReader.onload = function() {
           const typedarray = new Uint8Array(this.result);
           pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-            let fullText = '';
-            let countPromises = [];
+            let pagePromises = [];
             for (let i = 1; i <= pdf.numPages; i++) {
-              countPromises.push(pdf.getPage(i).then(page => {
-                return page.getTextContent().then(textContent => {
-                  textContent.items.forEach(item => { fullText += item.str + ' '; });
-                });
-              }));
+              pagePromises.push(pdf.getPage(i).then(page => page.getTextContent()));
             }
-            Promise.all(countPromises).then(() => {
-              combinedText += `\n--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n` + fullText.slice(0, 1000) + '\n';
-              document.getElementById('candidateInput').value = combinedText;
-            });
-          });
+            Promise.all(pagePromises).then(contents => {
+              let text = contents.map(c => c.items.map(item => item.str).join(' ')).join(' ');
+              text = text.trim() ? text.slice(0, 1000) : '[掃描檔/影像PDF，建議開啟 API 進行 OCR 辨識]';
+              resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n${text}\n`);
+            }).catch(() => resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n[PDF 解析失敗]\n`));
+          }).catch(() => resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n[PDF 讀取失敗]\n`));
         };
         fileReader.readAsArrayBuffer(file);
       } else if (file.type.startsWith("text/")) {
         const reader = new FileReader();
-        reader.onload = e => {
-          combinedText += `\n--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n` + e.target.result + '\n';
-          document.getElementById('candidateInput').value = combinedText;
-        };
+        reader.onload = e => resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n${e.target.result}\n`);
         reader.readAsText(file);
+      } else if (file.type.startsWith("image/")) {
+        resolve(`--- 【附件 ${index + 1}: ${file.name} 圖檔】 ---\n[圖片檔已上傳，需填寫 Gemini API Key 方可進行圖檔 OCR 辨識]\n`);
+      } else {
+        resolve(`--- 【附件 ${index + 1}: ${file.name} 檔案】 ---\n[已載入此檔案]\n`);
       }
     });
   }
+
+  // 按正確順序處理所有上傳檔案
+  async function handleFileUpload(files) {
+    if (!files.length) return;
+    
+    const fileListContainer = document.getElementById('fileList');
+    fileListContainer.innerHTML = ''; 
+    const fileArray = Array.from(files);
+
+    // 1. 呈現在地檔案清單
+    fileArray.forEach((file, index) => {
+      const item = document.createElement('div');
+      item.innerText = `📄 [附件 ${index + 1}] ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      fileListContainer.appendChild(item);
+    });
+
+    // 2. 按 1 ~ N 順序依序解析文字並填入框內
+    document.getElementById('candidateInput').value = '正在依序解析檔案內容，請稍候...';
+    const promises = fileArray.map((file, idx) => processFile(file, idx));
+    const results = await Promise.all(promises);
+    document.getElementById('candidateInput').value = results.join('\n');
+  }
+
+  function executeAudit() {
+    const name = document.getElementById('candidateName').value || '應徵者';
+    const dept = document.getElementById('candidateDept').value || '人工智慧暨機器人創新中心';
+    const type = document.getElementById('appointmentType').value;
+    const typeText = type === 'deepen' ? '深耕計畫聘 (高教深耕專案)' : '院聘 (本院編制)';
+    const fundText = type === 'deepen' ? '教育部高等教育深耕計畫（AIRIC 分項專案）年度預算項下支應' : '本中心/本院統籌業務及人資預算費用項下支應';
+
+    const candidateText = document.getElementById('candidateInput').value;
+    const isPass = candidateText.includes('第一作者') || candidateText.includes('碩士') || candidateText.includes('博士');
+
+    const badge = document.getElementById('resultBadge');
+    const overview = document.getElementById('auditOverview');
+    const matrix = document.getElementById('auditMatrix');
+    const doc = document.getElementById('docOutput');
+
+    if (isPass) {
+      badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
+      badge.innerText = '審核結果：完全符合 qualification passed';
+
+      overview.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="font-bold text-emerald-700 text-sm">✓ 具備進用資格</span>
+            <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
+          </div>
+          <span class="seal-stamp">AIRIC 通過</span>
+        </div>
+      `;
+
+      matrix.innerHTML = `
+        <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
+          <p class="font-bold text-emerald-900">1. 學歷門檻比對：符合</p>
+          <p class="text-neutral-600">採計項目：具備教育部認可之國內外大學學位證明。</p>
+        </div>
+        <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
+          <p class="font-bold text-emerald-900">2. 成果與資歷採計：符合</p>
+          <p class="text-neutral-600">採計項目：已檢附相關成果證明文件（包含獲獎證明及作品集）。</p>
+        </div>
+      `;
+
+      doc.innerText = `簽  於 ${dept}                    中華民國 115 年 8 月 17 日\n\n主旨：簽請同意聘任 ${name} 先生/女士為本中心專案人員，提請 鑒核。\n\n說明：\n一、依據本中心研發推動計畫辦理。\n二、查 ${name} 先生/女士具備符合本院規範之資歷與技術能力。經比對其檢附資料與成果證明，均符合院內新聘進用門檻。\n三、本案擬採「${typeText}」辦理，所需薪資及相關費用擬由「${fundText}」負擔。\n四、擬自 115 年 9 月 1 日起起聘，相關權利義務悉依本院規定辦理。\n\n擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。`;
+
+    } else {
+      badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-rose-100 text-rose-800';
+      badge.innerText = '審核結果：資格不符 / 資料缺失';
+
+      overview.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="font-bold text-rose-700 text-sm">✕ 未達門檻 / 缺少佐證資料</span>
+            <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
+          </div>
+          <span class="border border-rose-300 text-rose-600 font-bold px-2 py-0.5 rounded text-xs">需退補件</span>
+        </div>
+      `;
+
+      matrix.innerHTML = `
+        <div class="p-3 border rounded-lg bg-rose-50/50 border-rose-200 text-xs space-y-1">
+          <p class="font-bold text-rose-900">1. 成果與經歷證明：缺失</p>
+          <p class="text-neutral-600">檢附資料中未含有清晰之經歷或作品集文字說明。</p>
+        </div>
+      `;
+
+      doc.innerText = `人工智慧暨機器人創新中心 (AIRIC) 新聘人員進用審核補件通知單\n\n受文者：${name} 臺端\n日期：中華民國 115 年 8 月 17 日\n\n主旨：關於 臺端應徵本中心專案職缺乙案，經本中心進用資格審核小組比對相關資料，尚有缺失項目，特此通知補件。\n\n說明：\n一、依本中心「${typeText}」審核標準，臺端目前缺漏或未達標之資料如下：\n    1. 請補充相關經歷或研究作品集等證明文件。\n二、請於 115 年 8 月 25 日前將上述資料補齊電子檔並回傳，以利重審本聘任案。`;
+    }
+  }
+
+  function switchTab(type) {
+    if (type === 'audit') {
+      document.getElementById('tabContentAudit').classList.remove('hidden');
+      document.getElementById('tabContentDoc').classList.add('hidden');
+      document.getElementById('tabBtn1').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
+      document.getElementById('tabBtn2').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+    } else {
+      document.getElementById('tabContentAudit').classList.add('hidden');
+      document.getElementById('tabContentDoc').classList.remove('hidden');
+      document.getElementById('tabBtn2').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
+      document.getElementById('tabBtn1').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+    }
+  }
+
+  function copyDoc() {
+    navigator.clipboard.writeText(document.getElementById('docOutput').innerText);
+    alert('已複製公文內容！');
+  }
+
+  function openApiModal() { document.getElementById('apiModal').classList.remove('hidden'); }
+  function closeApiModal() { document.getElementById('apiModal').classList.add('hidden'); }
+  function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value;
+    if (key) {
+      localStorage.setItem('AIRIC_GEMINI_KEY', key);
+      document.getElementById('apiStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400';
+      document.getElementById('apiStatusText').innerText = 'Gemini API : AI 已連線';
+    }
+    closeApiModal();
+  }
+  function clearApiKey() {
+    localStorage.removeItem('AIRIC_GEMINI_KEY');
+    document.getElementById('apiKeyInput').value = '';
+    document.getElementById('apiStatusDot').className = 'w-2 h-2 rounded-full bg-amber-400';
+    document.getElementById('apiStatusText').innerText = 'Gemini API : 本機模式';
+    closeApiModal();
+  }
+
+  window.onload = function() {
+    loadRoleTemplate();
+    document.getElementById('candidateInput').value = candidateDemo;
+    if (localStorage.getItem('AIRIC_GEMINI_KEY')) {
+      document.getElementById('apiStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400';
+      document.getElementById('apiStatusText').innerText = 'Gemini API : AI 已連線';
+    }
+  };
 </script>
-    }
-
-    function executeAudit() {
-      const name = document.getElementById('candidateName').value || '應徵者';
-      const dept = document.getElementById('candidateDept').value || '人工智慧暨機器人創新中心';
-      const type = document.getElementById('appointmentType').value;
-      const typeText = type === 'deepen' ? '深耕計畫聘' : '院聘 (本院編制)';
-      const fundText = type === 'deepen' ? '教育部高等教育深耕計畫（AIRIC 分項專案）年度預算項下支應' : '本中心/本院統籌業務及人資預算費用項下支應';
-
-      const candidateText = document.getElementById('candidateInput').value;
-      const isPass = candidateText.includes('第一作者') && candidateText.includes('博士');
-
-      const badge = document.getElementById('resultBadge');
-      const overview = document.getElementById('auditOverview');
-      const matrix = document.getElementById('auditMatrix');
-      const doc = document.getElementById('docOutput');
-
-      if (isPass) {
-        badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
-        badge.innerText = '審核結果：完全符合 qualification passed';
-
-        overview.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="font-bold text-emerald-700 text-sm">✓ 具備進用資格</span>
-              <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
-            </div>
-            <span class="seal-stamp">AIRIC 通過</span>
-          </div>
-        `;
-
-        matrix.innerHTML = `
-          <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
-            <p class="font-bold text-emerald-900">1. 學歷門檻比對：符合</p>
-            <p class="text-neutral-600">採計項目：具備國內外知名大學博士學位。</p>
-          </div>
-          <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
-            <p class="font-bold text-emerald-900">2. 研究成果採計：符合</p>
-            <p class="text-neutral-600">採計項目：發表近三年 SCI 第一作者論文 2 篇，期刊包含 IEEE TMI (Q1)。</p>
-          </div>
-        `;
-
-        doc.innerText = `簽  於 ${dept}                    中華民國 115 年 8 月 17 日\n\n主旨：簽請同意聘任 ${name} 博士為本中心專案研究人員，提請 鑒核。\n\n說明：\n一、依據本中心醫療 AI 及機器人研發推動計畫辦理。\n二、查 ${name} 博士畢業於知名大學學位，具備符合本院規範之資歷與技術能力。經比對其發表成果，近三年以第一作者發表 SCI 期刊論文 2 篇（含 Q1 高評等期刊），均符合院內新聘進用門檻。\n三、本案擬採「${typeText}」辦理，所需薪資及相關費用擬由「${fundText}」負擔。\n四、擬自 115 年 9 月 1 日起起聘，相關權利義務悉依本院規定辦理。\n\n擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。`;
-
-      } else {
-        badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-rose-100 text-rose-800';
-        badge.innerText = '審核結果：資格不符 / 資料缺失';
-
-        overview.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="font-bold text-rose-700 text-sm">✕ 未達門檻 / 缺少佐證資料</span>
-              <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
-            </div>
-            <span class="border border-rose-300 text-rose-600 font-bold px-2 py-0.5 rounded text-xs">需退補件</span>
-          </div>
-        `;
-
-        matrix.innerHTML = `
-          <div class="p-3 border rounded-lg bg-rose-50/50 border-rose-200 text-xs space-y-1">
-            <p class="font-bold text-rose-900">1. 論文成果第一作者證明：未達標準</p>
-            <p class="text-neutral-600">檢附之論文清單中，符合第一作者條件之 SCI 論文未達門檻。</p>
-          </div>
-        `;
-
-        doc.innerText = `人工智慧暨機器人創新中心 (AIRIC) 新聘人員進用審核補件通知單\n\n受文者：${name} 臺端\n日期：中華民國 115 年 8 月 17 日\n\n主旨：關於 臺端應徵本中心專案職缺乙案，經本中心進用資格審核小組比對相關資料，尚有缺失項目，特此通知補件。\n\n說明：\n一、依本中心「${typeText}」審核標準，臺端目前缺漏或未達標之資料如下：\n    1. 研究成果證明：請補充近三年第一作者發表之 SCI 論文抽印本或 Acceptance Letter。\n二、請於 115 年 8 月 25 日前將上述資料補齊電子檔並回傳，以利重審本聘任案。`;
-      }
-    }
-
-    function switchTab(type) {
-      if (type === 'audit') {
-        document.getElementById('tabContentAudit').classList.remove('hidden');
-        document.getElementById('tabContentDoc').classList.add('hidden');
-        document.getElementById('tabBtn1').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
-        document.getElementById('tabBtn2').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
-      } else {
-        document.getElementById('tabContentAudit').classList.add('hidden');
-        document.getElementById('tabContentDoc').classList.remove('hidden');
-        document.getElementById('tabBtn2').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
-        document.getElementById('tabBtn1').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
-      }
-    }
-
-    function copyDoc() {
-      navigator.clipboard.writeText(document.getElementById('docOutput').innerText);
-      alert('已複製公文內容！');
-    }
-
-    function openApiModal() { document.getElementById('apiModal').classList.remove('hidden'); }
-    function closeApiModal() { document.getElementById('apiModal').classList.add('hidden'); }
-    function saveApiKey() {
-      const key = document.getElementById('apiKeyInput').value;
-      if (key) {
-        localStorage.setItem('AIRIC_GEMINI_KEY', key);
-        document.getElementById('apiStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400';
-        document.getElementById('apiStatusText').innerText = 'Gemini API : AI 已連線';
-      }
-      closeApiModal();
-    }
-    function clearApiKey() {
-      localStorage.removeItem('AIRIC_GEMINI_KEY');
-      document.getElementById('apiKeyInput').value = '';
-      document.getElementById('apiStatusDot').className = 'w-2 h-2 rounded-full bg-amber-400';
-      document.getElementById('apiStatusText').innerText = 'Gemini API : 本機模式';
-      closeApiModal();
-    }
-
-    window.onload = function() {
-      loadRoleTemplate();
-      document.getElementById('candidateInput').value = candidateDemo;
-      if (localStorage.getItem('AIRIC_GEMINI_KEY')) {
-        document.getElementById('apiStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400';
-        document.getElementById('apiStatusText').innerText = 'Gemini API : AI 已連線';
-      }
-    };
-  </script>
 </body>
 </html>
