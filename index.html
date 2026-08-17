@@ -41,19 +41,19 @@
           </div>
           <h2 class="text-base font-bold text-neutral-900 mb-3">1. 選擇擬聘職位與院內門檻規範</h2>
           
-          <select id="roleSelect" onchange="loadRoleTemplate()" class="w-full text-sm border border-neutral-300 rounded-lg p-2.5 bg-neutral-50 font-medium focus:ring-2 focus:ring-[#E60012] focus:outline-none mb-3">
-            <option value="engineer">研發工程師</option>
-            <option value="engineer">副研發工程師</option>
-            <option value="engineer">助理研發工程師</option>
-            <option value="engineer">演算法工程師</option>
-            <option value="engineer">臨床數據分析師</option>
-            <option value="engineer">初級臨床數據分析師</option>
-            <option value="engineer">高階應用資料科學家</option>            
-            <option value="engineer">中階應用資料科學家</option>
-            <option value="engineer">初階應用資料科學家</option>              
-            <option value="pm">專案經理 / 專案評估員 (管理類)</option>
-            <option value="custom">自訂審核條款與資格條件...</option>
-          </select>
+<select id="roleSelect" onchange="loadRoleTemplate()" class="w-full text-sm border border-neutral-300 rounded-lg p-2.5 bg-neutral-50 font-medium focus:ring-2 focus:ring-[#E60012] focus:outline-none mb-3">
+  <option value="rd_engineer">研發工程師</option>
+  <option value="deputy_rd">副研發工程師</option>
+  <option value="assistant_rd">助理研發工程師</option>
+  <option value="algo_engineer">演算法工程師</option>
+  <option value="clinical_data_analyst">臨床數據分析師</option>
+  <option value="junior_clinical_analyst">初級臨床數據分析師</option>
+  <option value="senior_data_scientist">高階應用資料科學家</option>
+  <option value="mid_data_scientist">中階應用資料科學家</option>
+  <option value="junior_data_scientist">初階應用資料科學家</option>
+  <option value="pm">專案經理 / 專案評估員 (管理類)</option>
+  <option value="custom">自訂審核條款與資格條件...</option>
+</select>
 
           <textarea id="rulesInput" class="w-full h-28 text-xs font-mono p-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700 focus:bg-white focus:ring-2 focus:ring-[#E60012] focus:outline-none transition"></textarea>
         </div>
@@ -90,14 +90,16 @@
               <textarea id="candidateInput" class="w-full h-32 text-xs p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none"></textarea>
             </div>
 
-            <div id="dropZone" class="border-2 border-dashed border-neutral-300 rounded-xl p-4 text-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer">
-              <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.docx,image/*" onchange="handleFileUpload(this.files)">
-              <div onclick="document.getElementById('fileInput').click()">
-                <p class="text-xs font-bold text-neutral-700">點擊上傳或將履歷/論文/證照檔案拖曳至此</p>
-                <p class="text-[10px] text-neutral-400 mt-1">支援 PDF / Word / TXT / 圖片</p>
-              </div>
-              <div id="fileList" class="mt-2 text-[11px] text-[#E60012] font-mono"></div>
-            </div>
+            <div id="dropZone" class="border-2 border-dashed border-neutral-300 rounded-xl p-4 text-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+  <!-- 加入 multiple 屬性，支援多檔選擇 -->
+  <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.docx,image/*" multiple onchange="handleFileUpload(this.files)">
+  <div onclick="document.getElementById('fileInput').click()">
+    <p class="text-xs font-bold text-neutral-700">點擊上傳或將履歷/論文/證照檔案拖曳至此</p>
+    <p class="text-[10px] text-neutral-400 mt-1">支援多檔案拖曳上傳 (PDF / Word / TXT / 圖片)</p>
+  </div>
+  <!-- 檔案列表顯示區 -->
+  <div id="fileList" class="mt-2 text-left space-y-1 text-[11px] text-[#E60012] font-mono"></div>
+</div>
           </div>
 
           <button onclick="executeAudit()" class="w-full mt-5 btn-nintendo-red font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2">
@@ -156,31 +158,52 @@
   </div>
 
   <script>
-    const templates = {
-      engineer: `【研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗5年。`,
-      engineer: `【副研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 2 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗3年。`,
-      engineer: `【助理研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 0 年以上研究工作經驗。\n- 成果：需具0件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗2年。`,
-      engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 獲兩位中心6職等工程師推薦。`,
-      engineer: `【臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗2年。`,
-      engineer: `【初級臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所學士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗1年。`,
-      engineer: `【高階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：相關文獻論文發表4篇。`,
-      engineer: `【中階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：相關文獻論文發表3篇。`,
-      engineer: `【初階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：相關文獻論文發表2篇。`,       
-      pm: `【醫療 AI 專案經理進用規範】\n- 學歷：國內外醫管、資訊管理、商管相關碩士學位。\n- 經歷：具備 3 年以上醫療資訊系統、AI 專案管理或驗證經驗。\n- 成果：主導完成醫療 AI 軟體上線或衛福部 TFDA 認證經驗證明 1 件。`,
-      custom: `請在此自訂您中心欲設定之人員進用條件門檻...`
-    };
+  // 1. 各職位對應之規範範本 (已修正 Key 覆蓋問題)
+  const templates = {
+    rd_engineer: `【研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗5年。`,
+    deputy_rd: `【副研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 2 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗3年。`,
+    assistant_rd: `【助理研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 0 年以上研究工作經驗。\n- 成果：需具0件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗2年。`,
+    algo_engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
+    clinical_data_analyst: `【臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗2年。`,
+    junior_clinical_analyst: `【初級臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所學士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗1年。`,
+    senior_data_scientist: `【高階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：相關文獻論文發表4篇。`,
+    mid_data_scientist: `【中階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：相關文獻論文發表3篇。`,
+    junior_data_scientist: `【初階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：相關文獻論文發表2篇。`,
+    pm: `【醫療 AI 專案經理進用規範】\n- 學歷：國內外醫管、資訊管理、商管相關碩士學位。\n- 經歷：具備 3 年以上醫療資訊系統、AI 專案管理或驗證經驗。\n- 成果：主導完成醫療 AI 軟體上線或衛福部 TFDA 認證經驗證明 1 件。`,
+    custom: `請在此自訂您中心欲設定之人員進用條件門檻...`
+  };
 
-    const candidateDemo = `【學歷】國立臺灣大學 資訊工程學系 博士\n【經歷】中央研究院 博士後研究員 1 年 8 個月 (專案執行：醫療影像 AI 分割)\n【成果發表】\n1. Hsu et al., "Deep Learning for Clinical AI Solutions", IEEE TMI, 2025 (第一作者, SCI Q1)\n2. Hsu et al., "Robotic Surgery Platform Integration", Journal of Medical Robotics, 2024 (第一作者, SCI Q2)`;
+  const candidateDemo = `【學歷】國立臺灣大學 資訊工程學系 博士\n【經歷】中央研究院 博士後研究員 1 年 8 個月 (專案執行：醫療影像 AI 分割)\n【成果發表】\n1. Hsu et al., "Deep Learning for Clinical AI Solutions", IEEE TMI, 2025 (第一作者, SCI Q1)\n2. Hsu et al., "Robotic Surgery Platform Integration", Journal of Medical Robotics, 2024 (第一作者, SCI Q2)`;
 
-    function loadRoleTemplate() {
-      const val = document.getElementById('roleSelect').value;
-      document.getElementById('rulesInput').value = templates[val] || '';
+  // 2. 切換選單自動載入對應範本
+  function loadRoleTemplate() {
+    const val = document.getElementById('roleSelect').value;
+    document.getElementById('rulesInput').value = templates[val] || '';
+  }
+
+  // 3. 拖曳檔案放開（Drop）事件處理
+  function handleDrop(e) {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files);
     }
+  }
 
-    function handleFileUpload(files) {
-      if (!files.length) return;
-      const file = files[0];
-      document.getElementById('fileList').innerText = `已載入檔案：${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  // 4. 多檔案解析與清單呈現代碼
+  function handleFileUpload(files) {
+    if (!files.length) return;
+    
+    const fileListContainer = document.getElementById('fileList');
+    fileListContainer.innerHTML = ''; // 清空舊顯示
+    let combinedText = '';
+
+    Array.from(files).forEach((file, index) => {
+      // 顯示多檔案名稱清單
+      const item = document.createElement('div');
+      item.innerText = `📄 [附件 ${index + 1}] ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      fileListContainer.appendChild(item);
+
+      // 自動讀取 PDF 內容
       if (file.type === "application/pdf") {
         const fileReader = new FileReader();
         fileReader.onload = function() {
@@ -196,16 +219,23 @@
               }));
             }
             Promise.all(countPromises).then(() => {
-              document.getElementById('candidateInput').value = `【從 PDF 自動抽取文字內容】:\n` + fullText.slice(0, 800) + '...';
+              combinedText += `\n--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n` + fullText.slice(0, 1000) + '\n';
+              document.getElementById('candidateInput').value = combinedText;
             });
           });
         };
         fileReader.readAsArrayBuffer(file);
       } else if (file.type.startsWith("text/")) {
         const reader = new FileReader();
-        reader.onload = e => document.getElementById('candidateInput').value = e.target.result;
+        reader.onload = e => {
+          combinedText += `\n--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n` + e.target.result + '\n';
+          document.getElementById('candidateInput').value = combinedText;
+        };
         reader.readAsText(file);
       }
+    });
+  }
+</script>
     }
 
     function executeAudit() {
