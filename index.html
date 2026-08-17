@@ -248,8 +248,17 @@
     const typeText = type === 'deepen' ? '深耕計畫聘 (高教深耕專案)' : '院聘 (本院編制)';
     const fundText = type === 'deepen' ? '教育部高等教育深耕計畫（AIRIC 分項專案）年度預算項下支應' : '本中心/本院統籌業務及人資預算費用項下支應';
 
+    // 抓取選單目前的職稱名稱
+    const roleSelect = document.getElementById('roleSelect');
+    const roleText = roleSelect.options[roleSelect.selectedIndex].text.split('(')[0].trim();
+
+    // 動態取得當前日期 (民國年)
+    const today = new Date();
+    const rocYear = today.getFullYear() - 1911;
+    const dateStr = `${rocYear} 年 ${today.getMonth() + 1} 月 ${today.getDate()} 日`;
+
     const candidateText = document.getElementById('candidateInput').value;
-    const isPass = candidateText.includes('第一作者') || candidateText.includes('碩士') || candidateText.includes('博士');
+    const isPass = candidateText.includes('第一作者') || candidateText.includes('碩士') || candidateText.includes('博士') || candidateText.includes('附件');
 
     const badge = document.getElementById('resultBadge');
     const overview = document.getElementById('auditOverview');
@@ -272,16 +281,17 @@
 
       matrix.innerHTML = `
         <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
-          <p class="font-bold text-emerald-900">1. 學歷門檻比對：符合</p>
-          <p class="text-neutral-600">採計項目：具備教育部認可之國內外大學學位證明。</p>
+          <p class="font-bold text-emerald-900">1. 學歷與資歷門檻：符合</p>
+          <p class="text-neutral-600">採計項目：具備相關系所學位與專業資歷。</p>
         </div>
         <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
-          <p class="font-bold text-emerald-900">2. 成果與資歷採計：符合</p>
-          <p class="text-neutral-600">採計項目：已檢附相關成果證明文件（包含獲獎證明及作品集）。</p>
+          <p class="font-bold text-emerald-900">2. 成果作品採計：符合</p>
+          <p class="text-neutral-600">採計項目：已檢附相關開發作品、獲獎或研究成果證明。</p>
         </div>
       `;
 
-      doc.innerText = `簽  於 ${dept}                    中華民國 115 年 8 月 17 日\n\n主旨：簽請同意聘任 ${name} 先生/女士為本中心專案人員，提請 鑒核。\n\n說明：\n一、依據本中心研發推動計畫辦理。\n二、查 ${name} 先生/女士具備符合本院規範之資歷與技術能力。經比對其檢附資料與成果證明，均符合院內新聘進用門檻。\n三、本案擬採「${typeText}」辦理，所需薪資及相關費用擬由「${fundText}」負擔。\n四、擬自 115 年 9 月 1 日起起聘，相關權利義務悉依本院規定辦理。\n\n擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。`;
+      // 套用您指定的公文範本與自動帶入邏輯
+      doc.innerText = `簽 於 人工智慧暨機器人創新中心 中華民國 ${dateStr}\n\n主旨：因應中心發展，擬請同意聘任 ${name} 先生/女士為 ${roleText}，呈請核示。\n\n說明：\n一、聘任人員背景與專業能力：查 ${name} 先生/女士具備符合本院規範之專業技術背景與相關經歷。\n二、相關成果敘述：經比對其檢附之資料與作品證明，均符合院內新聘進用門檻規定。\n三、${name} 先生/女士專業能力與本中心持續推動智慧醫療系統研發之需求高度契合。為強化本中心專業團隊戰力，擬請同意聘任 ${name} 先生/女士為 [自行填寫] 職等 ${roleText}（採「${typeText}」辦理，所需費用由「${fundText}」支應）。\n四、相關學經歷證明文件如附件。\n\n擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。`;
 
     } else {
       badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-rose-100 text-rose-800';
@@ -300,11 +310,11 @@
       matrix.innerHTML = `
         <div class="p-3 border rounded-lg bg-rose-50/50 border-rose-200 text-xs space-y-1">
           <p class="font-bold text-rose-900">1. 成果與經歷證明：缺失</p>
-          <p class="text-neutral-600">檢附資料中未含有清晰之經歷或作品集文字說明。</p>
+          <p class="text-neutral-600">檢附資料中未含有清晰之經歷或作品集證明。</p>
         </div>
       `;
 
-      doc.innerText = `人工智慧暨機器人創新中心 (AIRIC) 新聘人員進用審核補件通知單\n\n受文者：${name} 臺端\n日期：中華民國 115 年 8 月 17 日\n\n主旨：關於 臺端應徵本中心專案職缺乙案，經本中心進用資格審核小組比對相關資料，尚有缺失項目，特此通知補件。\n\n說明：\n一、依本中心「${typeText}」審核標準，臺端目前缺漏或未達標之資料如下：\n    1. 請補充相關經歷或研究作品集等證明文件。\n二、請於 115 年 8 月 25 日前將上述資料補齊電子檔並回傳，以利重審本聘任案。`;
+      doc.innerText = `人工智慧暨機器人創新中心 (AIRIC) 新聘人員進用審核補件通知單\n\n受文者：${name} 臺端\n日期：中華民國 ${dateStr}\n\n主旨：關於 臺端應徵本中心 ${roleText} 乙案，經本中心進用資格審核小組比對相關資料，尚有缺失項目，特此通知補件。\n\n說明：\n一、依本中心「${typeText}」審核標準，臺端目前缺漏或未達標之資料如下：\n    1. 請補充相關學經歷證明或成果作品集文件。\n二、請於收到通知後 7 日內將上述資料補齊電子檔並回傳，以利重審本聘任案。`;
     }
   }
 
