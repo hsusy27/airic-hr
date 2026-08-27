@@ -366,6 +366,8 @@
 
   async function executeAudit() {
     const name = document.getElementById('candidateName').value || '應徵者';
+    const surname = name.length > 0 ? name.charAt(0) : '該'; // 自動抓取第一個字作為姓氏
+    
     const dept = document.getElementById('candidateDept').value || '人工智慧暨機器人創新中心';
     const type = document.getElementById('appointmentType').value;
     const typeText = type === 'deepen' ? '深耕計畫聘' : '院聘 (本院編制)';
@@ -392,9 +394,10 @@
     switchTab('audit');
     badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-amber-100 text-amber-800';
     badge.innerText = '🤖 AI 影像與語意聯合比對審查中...';
-    matrix.innerHTML = '<div class="p-4 text-sm text-neutral-500 font-mono">正在交叉比對門檻、讀取掃描附件與推算年資，請稍候...</div>';
+    matrix.innerHTML = '<div class="p-4 text-sm text-neutral-500 font-mono">正在交叉比對門檻、讀取掃描附件與生成公文，請稍候...</div>';
     docOutput.innerText = '等待審核完成後，將自動生成對應公文...';
 
+    // 💡 關鍵修改：嚴格規定 AI 在 isPass 時的公文輸出格式
     const prompt = `
     你是一位專業嚴謹的醫療院所人資與行政主管。
     請根據以下【擬聘職位門檻規範】嚴格審核【應徵者履歷與附件資料】。
@@ -418,8 +421,16 @@
       "isPass": true 或 false,
       "reasonTitle": "核對結果標題 (例如：符合學歷與經歷門檻 / 缺少推薦信)",
       "reasonDetail": "詳細說明哪裡符合或不符合。如果不符合，請具體指出缺漏 (例如：未檢附推薦信)。",
-      "docText": "如果 isPass 為 true，請撰寫標準院內簽呈草稿(需包含主旨、說明、擬辦)；如果 false，請撰寫補件通知單草稿。"
+      "docText": "如果 isPass 為 true，請嚴格依照下方【公文撰寫格式要求】生成簽呈；如果 false，請撰寫補件通知單草稿。"
     }
+
+    【公文撰寫格式要求】(當 isPass 為 true 時，docText 必須嚴格遵守以下格式與段落)：
+    主旨：因應中心發展，擬請同意聘任 ${name} 君為 ${roleText}，呈請核示。
+    說明：
+    一、${surname}員（請接續詳述其學歷背景，並具體說明其曾任職的機構與工作內容；若無工作經驗，請詳述其在學期間的專案或研究經驗）。
+    二、（請詳細且完整地用一大段文字，敘述該員的傑出成果、專案貢獻、論文發表或作品集，展現其專業亮點）。
+    三、${surname}員之專業能力與本中心持續推動智慧醫療系統研發之需求契合。為強化本中心專業團隊戰力，擬請同意聘任${name}先生/小姐為 [請自行判斷填寫] 職等${roleText}（採「${typeText}」辦理，所需費用由「${fundText}」支應）。
+    擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。
     `;
 
     try {
