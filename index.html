@@ -46,6 +46,8 @@
             <option value="deputy_rd">副研發工程師</option>
             <option value="assistant_rd">助理研發工程師</option>
             <option value="algo_engineer">演算法工程師</option>
+            <option value="deputy_engineer">演算法副工程師</option>
+            <option value="assistant_engineer">演算法助理工程師</option>
             <option value="clinical_data_analyst">臨床數據分析師</option>
             <option value="junior_clinical_analyst">初級臨床數據分析師</option>
             <option value="senior_data_scientist">高階應用資料科學家</option>
@@ -162,6 +164,8 @@
     deputy_rd: `【副研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 2 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗3年。`,
     assistant_rd: `【助理研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 0 年以上研究工作經驗。\n- 成果：需具0件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗2年。`,
     algo_engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
+    deputy_engineer: `【演算法副工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具3件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
+     assistant_engineer: `【演算法助理工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
     clinical_data_analyst: `【臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗2年。`,
     junior_clinical_analyst: `【初級臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所學士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗1年。`,
     senior_data_scientist: `【高階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：相關文獻論文發表4篇。`,
@@ -258,7 +262,7 @@
     const name = document.getElementById('candidateName').value || '應徵者';
     const dept = document.getElementById('candidateDept').value || '人工智慧暨機器人創新中心';
     const type = document.getElementById('appointmentType').value;
-    const typeText = type === 'deepen' ? '深耕計畫聘 (高教深耕專案)' : '院聘 (本院編制)';
+    const typeText = type === 'deepen' ? '深耕計畫聘' : '院聘 (本院編制)';
     const fundText = type === 'deepen' ? '教育部高等教育深耕計畫（AIRIC 分項專案）年度預算項下支應' : '本中心/本院統籌業務及人資預算費用項下支應';
 
     const roleSelect = document.getElementById('roleSelect');
