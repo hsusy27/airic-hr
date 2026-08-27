@@ -33,7 +33,7 @@
   <main class="max-w-7xl mx-auto px-6 mt-8">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       
-      <!-- 左側：設定與輸入區 (佔 5 欄) -->
+      <!-- 左側：設定與輸入區 -->
       <section class="lg:col-span-5 space-y-6 flex flex-col justify-between">
         
         <div class="card-nintendo bg-white p-6 rounded-2xl shadow-sm border border-neutral-200">
@@ -92,19 +92,19 @@
 
               <div>
                 <div class="flex justify-between items-center mb-1">
-                  <label class="font-semibold text-neutral-700">應徵者經歷與內文摘要</label>
+                  <label class="font-semibold text-neutral-700">應徵者經歷與內文摘要 (可手動輸入年資備註)</label>
                   <button onclick="anonymizeInputText()" class="text-[11px] font-bold text-[#E60012] hover:bg-rose-50 px-2 py-0.5 rounded border border-rose-200 transition">
-                    🔒 快速去識別化 (遮蔽個資)
+                    🔒 快速去識別化
                   </button>
                 </div>
-                <textarea id="candidateInput" class="w-full h-28 text-xs p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none"></textarea>
+                <textarea id="candidateInput" class="w-full h-28 text-xs p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none" placeholder="可在此手動輸入：「已確認具備5年相關工作經驗」等備註，AI 將自動採信。"></textarea>
               </div>
 
               <div id="dropZone" class="border-2 border-dashed border-neutral-300 rounded-xl p-3 text-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
                 <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.docx,image/*" multiple onchange="handleFileUpload(this.files)">
                 <div onclick="document.getElementById('fileInput').click()">
                   <p class="text-xs font-bold text-neutral-700">點擊上傳或將履歷/面試表/證照檔案拖曳至此</p>
-                  <p class="text-[10px] text-neutral-400 mt-0.5">支援多檔案上傳 (PDF / Word / TXT / 圖片)</p>
+                  <p class="text-[10px] text-neutral-400 mt-0.5">支援圖檔 OCR，若為影像 PDF 系統將自動送交 AI 視覺辨識</p>
                 </div>
                 <div id="fileList" class="mt-2 text-left space-y-1 text-[11px] text-[#E60012] font-mono max-h-24 overflow-y-auto"></div>
               </div>
@@ -119,7 +119,7 @@
 
       </section>
 
-      <!-- 右側：結果展示區 (佔 7 欄) -->
+      <!-- 右側：結果展示區 -->
       <section class="lg:col-span-7 flex flex-col">
         <div class="card-nintendo bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 h-full flex flex-col justify-between">
           
@@ -180,7 +180,7 @@
         <button onclick="closeApiModal()" class="text-neutral-400 hover:text-black font-bold">✕</button>
       </div>
       <p class="text-xs text-neutral-500 leading-normal">
-        預設啟用在地規則檢核引擎。輸入 Gemini API Key 後可啟動 LLM 語意精準比對與證照辨識。金鑰僅會加密存在您當前瀏覽器本機 (LocalStorage)。
+        預設啟用在地規則檢核引擎。輸入 Gemini API Key 後可啟動 LLM 語意精準比對與證照圖檔視覺辨識。金鑰僅會加密存在您當前瀏覽器本機 (LocalStorage)。
       </p>
       <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full text-xs p-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-[#E60012] focus:outline-none">
       <div class="flex justify-end space-x-2">
@@ -191,13 +191,15 @@
   </div>
 
 <script>
+  let aiAttachments = [];
+
   const templates = {
     rd_engineer: `【研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗5年。`,
     deputy_rd: `【副研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 2 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗3年。`,
     assistant_rd: `【助理研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 0 年以上研究工作經驗。\n- 成果：需具0件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗2年。`,
-    algo_engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心工程師推薦。`,
-    deputy_engineer: `【演算法副工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具3件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心工程師推薦。`,
-    assistant_engineer: `【演算法助理工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心工程師推薦。`,
+    algo_engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
+    deputy_engineer: `【演算法副工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具3件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
+    assistant_engineer: `【演算法助理工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
     clinical_data_analyst: `【臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗2年。`,
     junior_clinical_analyst: `【初級臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所學士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗1年。`,
     senior_data_scientist: `【高階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：相關文獻論文發表4篇。`,
@@ -206,8 +208,6 @@
     pm: `【醫療 AI 專案經理進用規範】\n- 學歷：國內外醫管、資訊管理、商管相關碩士學位。\n- 經歷：具備 3 年以上醫療資訊系統、AI 專案管理或驗證經驗。\n- 成果：主導完成醫療 AI 軟體上線或衛福部 TFDA 認證經驗證明 1 件。`,
     custom: `請在此自訂您中心欲設定之人員進用條件門檻...`
   };
-
-  const candidateDemo = `【學歷】國立臺灣大學 資訊工程學系 博士\n【經歷】中央研究院 博士後研究員 1 年 8 個月 (專案執行：醫療影像 AI 分割)\n【成果發表】\n1. Hsu et al., "Deep Learning for Clinical AI Solutions", IEEE TMI, 2025 (第一作者, SCI Q1)\n2. Hsu et al., "Robotic Surgery Platform Integration", Journal of Medical Robotics, 2024 (第一作者, SCI Q2)`;
 
   function loadRoleTemplate() {
     const val = document.getElementById('roleSelect').value;
@@ -219,6 +219,15 @@
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFileUpload(e.dataTransfer.files);
     }
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = error => reject(error);
+    });
   }
 
   function processFile(file, index) {
@@ -234,7 +243,7 @@
             }
             Promise.all(pagePromises).then(contents => {
               let text = contents.map(c => c.items.map(item => item.str).join(' ')).join(' ');
-              text = text.trim() ? text.slice(0, 1000) : '[掃描檔/影像PDF，建議開啟 API 進行 OCR 辨識]';
+              text = text.trim() ? text.slice(0, 1000) : '[掃描檔/影像PDF，系統已自動交由 AI 視覺辨識處理]';
               resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n${text}\n`);
             }).catch(() => resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n[PDF 解析失敗]\n`));
           }).catch(() => resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n[PDF 讀取失敗]\n`));
@@ -245,7 +254,7 @@
         reader.onload = e => resolve(`--- 【附件 ${index + 1}: ${file.name} 內文】 ---\n${e.target.result}\n`);
         reader.readAsText(file);
       } else if (file.type.startsWith("image/")) {
-        resolve(`--- 【附件 ${index + 1}: ${file.name} 圖檔】 ---\n[圖片檔已上傳，需填寫 Gemini API Key 方可進行圖檔 OCR 辨識]\n`);
+        resolve(`--- 【附件 ${index + 1}: ${file.name} 圖檔】 ---\n[圖片檔已上傳，系統將自動交由 AI 視覺辨識處理]\n`);
       } else {
         resolve(`--- 【附件 ${index + 1}: ${file.name} 檔案】 ---\n[已載入此檔案]\n`);
       }
@@ -258,6 +267,8 @@
     fileListContainer.innerHTML = ''; 
     const fileArray = Array.from(files);
 
+    aiAttachments = []; // 每次上傳新檔案時清空舊紀錄
+
     fileArray.forEach((file, index) => {
       const item = document.createElement('div');
       item.innerText = `📄 [附件 ${index + 1}] ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
@@ -265,12 +276,30 @@
     });
 
     document.getElementById('candidateInput').value = '正在依序解析檔案內容，請稍候...';
+    
+    // 處理顯示在畫面上的文字預覽
     const promises = fileArray.map((file, idx) => processFile(file, idx));
     const results = await Promise.all(promises);
     document.getElementById('candidateInput').value = results.join('\n');
+
+    // 把 PDF 與圖片打包準備送給 Gemini 視覺引擎
+    for (let file of fileArray) {
+      if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+        try {
+          const base64Data = await fileToBase64(file);
+          aiAttachments.push({
+            inlineData: {
+              data: base64Data,
+              mimeType: file.type
+            }
+          });
+        } catch (e) {
+          console.error('檔案轉換給 AI 失敗:', e);
+        }
+      }
+    }
   }
 
-  // 🔒 自動去識別化處理函數
   function anonymizeInputText() {
     const inputArea = document.getElementById('candidateInput');
     let text = inputArea.value;
@@ -287,12 +316,10 @@
     text = text.replace(/(\d{2,4}[年\/-]\d{1,2}[月\/-]\d{1,2}[日]?)/g, '[生日日期已遮蔽]');
 
     inputArea.value = text;
-    // 將結果賦予新的 textarea
     document.getElementById('anonOutput').value = text;
     switchTab('anon');
   }
 
-  // 📥 下載去識別化檔案函數
   function downloadAnonymizedFile() {
     const text = document.getElementById('anonOutput').value;
     if (!text || text.trim() === '') {
@@ -300,32 +327,33 @@
       return;
     }
     
-    // 取得應徵者姓名作為檔名前綴
     const candidateName = document.getElementById('candidateName').value || '應徵者';
-    
-    // 建立 Blob 物件與下載連結
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     
     a.href = url;
-    a.download = `${candidateName}_去識別化資料.txt`; // 設定下載檔名
+    a.download = `${candidateName}_去識別化資料.txt`;
     
     document.body.appendChild(a);
     a.click();
-    
-    // 清理 DOM 與 URL 物件
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
 
-  async function callGeminiAPI(apiKey, prompt) {
+  async function callGeminiAPI(apiKey, prompt, attachments = []) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+    const parts = [{ text: prompt }];
+    
+    if (attachments.length > 0) {
+      parts.push(...attachments);
+    }
+
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({ contents: [{ parts: parts }] })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'API 請求失敗');
@@ -353,6 +381,8 @@
     const matrix = document.getElementById('auditMatrix');
     const docOutput = document.getElementById('docOutput');
     const apiKey = localStorage.getItem('AIRIC_GEMINI_KEY');
+    
+    const currentYear = new Date().getFullYear();
 
     if (!apiKey) {
       alert('請先點擊右上角設定 Gemini API Key，才能啟動系統的智慧條件核對功能！');
@@ -361,8 +391,8 @@
 
     switchTab('audit');
     badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-amber-100 text-amber-800';
-    badge.innerText = '🤖 AI 嚴格比對審查中...';
-    matrix.innerHTML = '<div class="p-4 text-sm text-neutral-500 font-mono">正在交叉比對各項進用門檻與應徵者履歷內容，請稍候...</div>';
+    badge.innerText = '🤖 AI 影像與語意聯合比對審查中...';
+    matrix.innerHTML = '<div class="p-4 text-sm text-neutral-500 font-mono">正在交叉比對門檻、讀取掃描附件與推算年資，請稍候...</div>';
     docOutput.innerText = '等待審核完成後，將自動生成對應公文...';
 
     const prompt = `
@@ -370,7 +400,9 @@
     請根據以下【擬聘職位門檻規範】嚴格審核【應徵者履歷與附件資料】。
     
     【審核極度重要指示】：
-    必須「完全符合」規範中的每一項要求才算通過！如果規範中明訂需要「推薦信」、「特定年資」或「特定發表數量」，但履歷與附件資料中沒有明確提到或數量不足，請務必判定為「不符合 (isPass: false)」。
+    1. 必須「完全符合」規範要求才算通過。
+    2. 【年資彈性認定】：若應徵者目前仍在職（如寫「至今」或「Present」），請自動推算至今年（${currentYear}年）計算總年資。此外，若人資人員已在內文中手動備註「年資有X年」、「已確認具備X年工作經驗」等文字，請直接無條件採信該手動輸入的文字作為年資達標的證據！
+    3. 【掃描圖檔與推薦信辨識】：系統已連線並附上原始掃描圖檔與PDF。遇到推薦信或證書掃描檔時，請發揮你的 OCR 視覺辨識能力，親自閱讀圖檔內文，若圖檔內文確實含有主管推薦或相關資歷，即算符合條件。
 
     【擬聘單位】：${dept}
     【應徵者姓名】：${name}
@@ -378,20 +410,20 @@
     【進用門檻規範】：
     ${rules}
 
-    【應徵者履歷與附件資料】：
+    【應徵者文字履歷與摘要】：
     ${candidateInfo}
 
     請以純 JSON 格式回傳（不可包含 markdown 標籤，如 \`\`\`json，只要純粹的括號結構），格式如下：
     {
       "isPass": true 或 false,
-      "reasonTitle": "核對結果標題 (例如：符合學歷與經歷門檻 / 缺少推薦信及相關經歷)",
-      "reasonDetail": "詳細說明履歷中哪裡符合、哪裡不符合規範。如果不符合，請具體指出缺漏了什麼 (例如：未檢附兩位中心6職等工程師推薦信)",
-      "docText": "如果 isPass 為 true，請撰寫一份標準院內簽呈草稿(需包含主旨、說明、擬辦)；如果 isPass 為 false，請撰寫一份補件通知單草稿(需告知應徵者缺少什麼具體資料)。"
+      "reasonTitle": "核對結果標題 (例如：符合學歷與經歷門檻 / 缺少推薦信)",
+      "reasonDetail": "詳細說明哪裡符合或不符合。如果不符合，請具體指出缺漏 (例如：未檢附推薦信)。",
+      "docText": "如果 isPass 為 true，請撰寫標準院內簽呈草稿(需包含主旨、說明、擬辦)；如果 false，請撰寫補件通知單草稿。"
     }
     `;
 
     try {
-      const aiResultStr = await callGeminiAPI(apiKey, prompt);
+      const aiResultStr = await callGeminiAPI(apiKey, prompt, aiAttachments);
       const cleanJsonStr = aiResultStr.replace(/```json/g, '').replace(/```/g, '').trim();
       const result = JSON.parse(cleanJsonStr);
 
@@ -497,7 +529,6 @@
 
   window.onload = function() {
     loadRoleTemplate();
-    document.getElementById('candidateInput').value = candidateDemo;
     if (localStorage.getItem('AIRIC_GEMINI_KEY')) {
       document.getElementById('apiStatusDot').className = 'w-2 h-2 rounded-full bg-emerald-400';
       document.getElementById('apiStatusText').innerText = 'Gemini API : AI 已連線';
