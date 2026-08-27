@@ -31,7 +31,6 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-6 mt-8">
-    <!-- 加入 items-stretch 確保左右兩側等高 -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       
       <!-- 左側：設定與輸入區 (佔 5 欄) -->
@@ -75,7 +74,7 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block font-semibold text-neutral-700 mb-1">應徵者姓名</label>
-                  <input type="text" id="candidateName" value="林佳姿" class="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none">
+                  <input type="text" id="candidateName" value="OOO" class="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none">
                 </div>
                 <div>
                   <label class="block font-semibold text-neutral-700 mb-1">擬聘單位/組別</label>
@@ -94,7 +93,6 @@
               <div>
                 <div class="flex justify-between items-center mb-1">
                   <label class="font-semibold text-neutral-700">應徵者經歷與內文摘要</label>
-                  <!-- 去識別化按鈕 -->
                   <button onclick="anonymizeInputText()" class="text-[11px] font-bold text-[#E60012] hover:bg-rose-50 px-2 py-0.5 rounded border border-rose-200 transition">
                     🔒 快速去識別化 (遮蔽個資)
                   </button>
@@ -121,17 +119,16 @@
 
       </section>
 
-      <!-- 右側：結果展示區 (佔 7 欄，設定 h-full 對齊左側) -->
+      <!-- 右側：結果展示區 (佔 7 欄) -->
       <section class="lg:col-span-7 flex flex-col">
         <div class="card-nintendo bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 h-full flex flex-col justify-between">
           
           <div class="flex-1 flex flex-col">
-            <!-- 頂部頁籤列 (增加去識別化頁籤) -->
             <div class="flex items-center justify-between border-b border-neutral-200 pb-3 mb-4">
               <div class="flex space-x-2">
                 <button id="tabBtn1" onclick="switchTab('audit')" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white">01. 資格核對矩陣</button>
                 <button id="tabBtn2" onclick="switchTab('doc')" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200">02. 擬聘簽呈 / 補件函</button>
-                <button id="tabBtn3" onclick="switchTab('anon')" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200">03. 去識別化資歷預覽</button>
+                <button id="tabBtn3" onclick="switchTab('anon')" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200">03. 去識別化方框</button>
               </div>
               <span id="resultBadge" class="text-xs px-3 py-1 rounded-full font-bold bg-neutral-100 text-neutral-500">等待輸入審核</span>
             </div>
@@ -154,15 +151,18 @@
               </div>
             </div>
 
-            <!-- Tab 3: 去識別化預覽面板 -->
-            <div id="tabContentAnon" class="hidden flex-1 flex-col space-y-3 h-full">
-              <div class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs flex justify-between items-center">
-                <span>🔒 系統已自動識別並遮蔽敏感個人資料（身分證字號、生日、聯絡電話、Email）。</span>
-                <button onclick="anonymizeInputText()" class="font-bold underline text-amber-900">重新整理遮蔽</button>
+            <!-- Tab 3: 去識別化預覽與下載面板 -->
+            <div id="tabContentAnon" class="hidden flex-1 flex-col h-full">
+              <div class="flex justify-between items-center mb-3">
+                <div class="text-xs text-amber-800 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 flex-1 mr-3">
+                  🔒 系統已自動識別並遮蔽敏感個人資料。您可以在下方文字方塊中手動微調後下載。
+                </div>
+                <div class="flex space-x-2">
+                  <button onclick="anonymizeInputText()" class="text-xs font-medium px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg whitespace-nowrap">重新整理</button>
+                  <button onclick="downloadAnonymizedFile()" class="text-xs font-bold px-3 py-2 bg-[#E60012] text-white hover:bg-red-700 rounded-lg shadow-sm whitespace-nowrap">📥 下載檔案</button>
+                </div>
               </div>
-              <div id="anonOutput" class="flex-1 p-4 bg-neutral-900 text-emerald-400 font-mono text-xs rounded-xl whitespace-pre-line overflow-y-auto max-h-[480px] border border-neutral-800">
-                (點擊「🔒 快速去識別化」按鈕即可在此預覽個人資料去識別化後的文本)
-              </div>
+              <textarea id="anonOutput" class="flex-1 w-full p-4 bg-neutral-900 text-emerald-400 font-mono text-xs rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E60012] resize-none min-h-[400px]" placeholder="(點擊「🔒 快速去識別化」按鈕即可在此預覽與編輯去識別化後的文本)"></textarea>
             </div>
           </div>
 
@@ -191,14 +191,13 @@
   </div>
 
 <script>
-  // 1. 各職位對應之規範範本
   const templates = {
     rd_engineer: `【研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗5年。`,
     deputy_rd: `【副研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 2 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗3年。`,
     assistant_rd: `【助理研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 0 年以上研究工作經驗。\n- 成果：需具0件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗2年。`,
-    algo_engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
-    deputy_engineer: `【演算法副工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具3件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
-    assistant_engineer: `【演算法助理工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
+    algo_engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心工程師推薦。`,
+    deputy_engineer: `【演算法副工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具3件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心工程師推薦。`,
+    assistant_engineer: `【演算法助理工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心工程師推薦。`,
     clinical_data_analyst: `【臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗2年。`,
     junior_clinical_analyst: `【初級臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所學士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗1年。`,
     senior_data_scientist: `【高階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：相關文獻論文發表4篇。`,
@@ -255,7 +254,6 @@
 
   async function handleFileUpload(files) {
     if (!files.length) return;
-    
     const fileListContainer = document.getElementById('fileList');
     fileListContainer.innerHTML = ''; 
     const fileArray = Array.from(files);
@@ -282,22 +280,45 @@
       return;
     }
 
-    // 1. 身分證字號遮蔽 (1位英文字母 + 9位數字)
     text = text.replace(/[A-Z][12]\d{8}/gi, '[身分證字號已遮蔽]');
-    // 2. 電子郵件遮蔽 (Email)
     text = text.replace(/[a-zA-Z0-2._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[Email已遮蔽]');
-    // 3. 手機號碼與電話號碼遮蔽
     text = text.replace(/(09\d{2}[\s-]?\d{3}[\s-]?\d{3})/g, '[手機號碼已遮蔽]');
     text = text.replace(/(\(?0\d{1,2}\)?[\s-]?\d{3,4}[\s-]?\d{4})/g, '[電話號碼已遮蔽]');
-    // 4. 生日格式遮蔽
     text = text.replace(/(\d{2,4}[年\/-]\d{1,2}[月\/-]\d{1,2}[日]?)/g, '[生日日期已遮蔽]');
 
     inputArea.value = text;
-    document.getElementById('anonOutput').innerText = text;
+    // 將結果賦予新的 textarea
+    document.getElementById('anonOutput').value = text;
     switchTab('anon');
   }
 
-  // 🤖 呼叫 Gemini API
+  // 📥 下載去識別化檔案函數
+  function downloadAnonymizedFile() {
+    const text = document.getElementById('anonOutput').value;
+    if (!text || text.trim() === '') {
+      alert('沒有可下載的內容！請先執行去識別化。');
+      return;
+    }
+    
+    // 取得應徵者姓名作為檔名前綴
+    const candidateName = document.getElementById('candidateName').value || '應徵者';
+    
+    // 建立 Blob 物件與下載連結
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    
+    a.href = url;
+    a.download = `${candidateName}_去識別化資料.txt`; // 設定下載檔名
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    // 清理 DOM 與 URL 物件
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   async function callGeminiAPI(apiKey, prompt) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     try {
@@ -315,7 +336,6 @@
     }
   }
 
-  // 🚀 執行嚴格 AI 資格核對與生成公文 (升級版)
   async function executeAudit() {
     const name = document.getElementById('candidateName').value || '應徵者';
     const dept = document.getElementById('candidateDept').value || '人工智慧暨機器人創新中心';
@@ -423,12 +443,10 @@
     }
   }
 
-  // 🔄 頁籤切換邏輯
   function switchTab(type) {
     const tab1 = document.getElementById('tabContentAudit');
     const tab2 = document.getElementById('tabContentDoc');
     const tab3 = document.getElementById('tabContentAnon');
-
     const btn1 = document.getElementById('tabBtn1');
     const btn2 = document.getElementById('tabBtn2');
     const btn3 = document.getElementById('tabBtn3');
