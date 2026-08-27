@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen pb-12 bg-neutral-100">
 
   <header class="bg-[#0F0F10] text-white border-b-4 border-[#E60012] sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -31,10 +31,13 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-6 mt-8">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- 加入 items-stretch 確保左右兩側等高 -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       
-      <section class="lg:col-span-5 space-y-6">
-        <div class="card-nintendo p-6">
+      <!-- 左側：設定與輸入區 (佔 5 欄) -->
+      <section class="lg:col-span-5 space-y-6 flex flex-col justify-between">
+        
+        <div class="card-nintendo bg-white p-6 rounded-2xl shadow-sm border border-neutral-200">
           <div class="flex items-center justify-between mb-4">
             <span class="text-xs font-mono font-bold bg-[#E60012] text-white px-2.5 py-0.5 rounded-full">STEP 01</span>
             <span class="text-xs text-neutral-400 font-mono">FRAMEWORK SELECT</span>
@@ -57,89 +60,119 @@
             <option value="custom">自訂審核條款與資格條件...</option>
           </select>
 
-          <textarea id="rulesInput" class="w-full h-28 text-xs font-mono p-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700 focus:bg-white focus:ring-2 focus:ring-[#E60012] focus:outline-none transition"></textarea>
+          <textarea id="rulesInput" class="w-full h-24 text-xs font-mono p-3 border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-700 focus:bg-white focus:ring-2 focus:ring-[#E60012] focus:outline-none transition"></textarea>
         </div>
 
-        <div class="card-nintendo p-6">
-          <div class="flex items-center justify-between mb-4">
-            <span class="text-xs font-mono font-bold bg-[#FF5B22] text-white px-2.5 py-0.5 rounded-full">STEP 02</span>
-            <span class="text-xs text-neutral-400 font-mono">CANDIDATE INFO</span>
-          </div>
-          <h2 class="text-base font-bold text-neutral-900 mb-3">2. 應徵者基本資料與聘任類別</h2>
+        <div class="card-nintendo bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono font-bold bg-[#FF5B22] text-white px-2.5 py-0.5 rounded-full">STEP 02</span>
+              <span class="text-xs text-neutral-400 font-mono">CANDIDATE INFO</span>
+            </div>
+            <h2 class="text-base font-bold text-neutral-900 mb-3">2. 應徵者基本資料與聘任類別</h2>
 
-          <div class="space-y-3 text-xs">
-            <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-neutral-700 mb-1">應徵者姓名</label>
+                  <input type="text" id="candidateName" value="林佳姿" class="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none">
+                </div>
+                <div>
+                  <label class="block font-semibold text-neutral-700 mb-1">擬聘單位/組別</label>
+                  <input type="text" id="candidateDept" value="人工智慧暨機器人創新中心" class="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none">
+                </div>
+              </div>
+
               <div>
-                <label class="block font-semibold text-neutral-700 mb-1">應徵者姓名</label>
-                <input type="text" id="candidateName" value="○○○" class="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none">
+                <label class="block font-semibold text-neutral-700 mb-1">聘任類別 / 經費來源</label>
+                <select id="appointmentType" class="w-full p-2 border border-neutral-200 rounded-lg bg-white font-medium focus:ring-2 focus:ring-[#E60012] focus:outline-none">
+                  <option value="hospital">院聘</option>
+                  <option value="deepen">深耕計畫聘 </option>
+                </select>
               </div>
+
               <div>
-                <label class="block font-semibold text-neutral-700 mb-1">擬聘單位/組別</label>
-                <input type="text" id="candidateDept" value="人工智慧暨機器人創新中心" class="w-full p-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="font-semibold text-neutral-700">應徵者經歷與內文摘要</label>
+                  <!-- 去識別化按鈕 -->
+                  <button onclick="anonymizeInputText()" class="text-[11px] font-bold text-[#E60012] hover:bg-rose-50 px-2 py-0.5 rounded border border-rose-200 transition">
+                    🔒 快速去識別化 (遮蔽個資)
+                  </button>
+                </div>
+                <textarea id="candidateInput" class="w-full h-28 text-xs p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none"></textarea>
               </div>
-            </div>
 
-            <div>
-              <label class="block font-semibold text-neutral-700 mb-1">聘任類別 / 經費來源</label>
-              <select id="appointmentType" class="w-full p-2 border border-neutral-200 rounded-lg bg-white font-medium focus:ring-2 focus:ring-[#E60012] focus:outline-none">
-                <option value="hospital">院聘</option>
-                <option value="deepen">深耕計畫聘 </option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block font-semibold text-neutral-700 mb-1">應徵者經歷與論文成果摘要</label>
-              <textarea id="candidateInput" class="w-full h-32 text-xs p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#E60012] focus:outline-none"></textarea>
-            </div>
-
-            <div id="dropZone" class="border-2 border-dashed border-neutral-300 rounded-xl p-4 text-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
-              <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.docx,image/*" multiple onchange="handleFileUpload(this.files)">
-              <div onclick="document.getElementById('fileInput').click()">
-                <p class="text-xs font-bold text-neutral-700">點擊上傳或將履歷/論文/證照檔案拖曳至此</p>
-                <p class="text-[10px] text-neutral-400 mt-1">支援多檔案拖曳上傳 (PDF / Word / TXT / 圖片)</p>
+              <div id="dropZone" class="border-2 border-dashed border-neutral-300 rounded-xl p-3 text-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+                <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.docx,image/*" multiple onchange="handleFileUpload(this.files)">
+                <div onclick="document.getElementById('fileInput').click()">
+                  <p class="text-xs font-bold text-neutral-700">點擊上傳或將履歷/面試表/證照檔案拖曳至此</p>
+                  <p class="text-[10px] text-neutral-400 mt-0.5">支援多檔案上傳 (PDF / Word / TXT / 圖片)</p>
+                </div>
+                <div id="fileList" class="mt-2 text-left space-y-1 text-[11px] text-[#E60012] font-mono max-h-24 overflow-y-auto"></div>
               </div>
-              <div id="fileList" class="mt-2 text-left space-y-1 text-[11px] text-[#E60012] font-mono"></div>
             </div>
           </div>
 
-          <button onclick="executeAudit()" class="w-full mt-5 btn-nintendo-red font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2">
+          <button onclick="executeAudit()" class="w-full mt-4 bg-[#E60012] hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition shadow-md">
             <span>開始執行資格核對與生成公文</span>
             <span>→</span>
           </button>
         </div>
+
       </section>
 
-      <section class="lg:col-span-7 space-y-6">
-        <div class="card-nintendo p-6 min-h-[580px] flex flex-col">
-          <div class="flex items-center justify-between border-b border-neutral-200 pb-3 mb-4">
-            <div class="flex space-x-2">
-              <button id="tabBtn1" onclick="switchTab('audit')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white">01. 資格核對矩陣</button>
-              <button id="tabBtn2" onclick="switchTab('doc')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200">02. 擬聘簽呈 / 補件函草稿</button>
+      <!-- 右側：結果展示區 (佔 7 欄，設定 h-full 對齊左側) -->
+      <section class="lg:col-span-7 flex flex-col">
+        <div class="card-nintendo bg-white p-6 rounded-2xl shadow-sm border border-neutral-200 h-full flex flex-col justify-between">
+          
+          <div class="flex-1 flex flex-col">
+            <!-- 頂部頁籤列 (增加去識別化頁籤) -->
+            <div class="flex items-center justify-between border-b border-neutral-200 pb-3 mb-4">
+              <div class="flex space-x-2">
+                <button id="tabBtn1" onclick="switchTab('audit')" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white">01. 資格核對矩陣</button>
+                <button id="tabBtn2" onclick="switchTab('doc')" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200">02. 擬聘簽呈 / 補件函</button>
+                <button id="tabBtn3" onclick="switchTab('anon')" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200">03. 去識別化資歷預覽</button>
+              </div>
+              <span id="resultBadge" class="text-xs px-3 py-1 rounded-full font-bold bg-neutral-100 text-neutral-500">等待輸入審核</span>
             </div>
-            <span id="resultBadge" class="text-xs px-3 py-1 rounded-full font-bold bg-neutral-100 text-neutral-500">等待輸入審核</span>
+
+            <!-- Tab 1: 資格核對矩陣 -->
+            <div id="tabContentAudit" class="space-y-4 flex-1">
+              <div id="auditOverview" class="p-4 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600">
+                請於左側設定進用門檻並輸入應徵者資料，點擊「開始執行資格核對」按鈕檢視結果。
+              </div>
+              <div id="auditMatrix" class="space-y-3"></div>
+            </div>
+
+            <!-- Tab 2: 擬聘簽呈 / 補件函草稿 -->
+            <div id="tabContentDoc" class="hidden flex-1 flex-col h-full">
+              <div class="flex justify-end space-x-2 mb-3">
+                <button onclick="copyDoc()" class="text-xs font-medium px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg">複製公文文字</button>
+              </div>
+              <div id="docOutput" class="flex-1 p-5 bg-neutral-50 border border-neutral-200 rounded-xl font-serif text-sm leading-relaxed text-neutral-800 whitespace-pre-line overflow-y-auto max-h-[500px]">
+                (核對完成後將自動生成簽呈內容)
+              </div>
+            </div>
+
+            <!-- Tab 3: 去識別化預覽面板 -->
+            <div id="tabContentAnon" class="hidden flex-1 flex-col space-y-3 h-full">
+              <div class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs flex justify-between items-center">
+                <span>🔒 系統已自動識別並遮蔽敏感個人資料（身分證字號、生日、聯絡電話、Email）。</span>
+                <button onclick="anonymizeInputText()" class="font-bold underline text-amber-900">重新整理遮蔽</button>
+              </div>
+              <div id="anonOutput" class="flex-1 p-4 bg-neutral-900 text-emerald-400 font-mono text-xs rounded-xl whitespace-pre-line overflow-y-auto max-h-[480px] border border-neutral-800">
+                (點擊「🔒 快速去識別化」按鈕即可在此預覽個人資料去識別化後的文本)
+              </div>
+            </div>
           </div>
 
-          <div id="tabContentAudit" class="flex-1 space-y-4">
-            <div id="auditOverview" class="p-4 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600">
-              請於左側設定進用門檻並輸入應徵者資料，點擊「開始執行資格核對」按鈕檢視結果。
-            </div>
-            <div id="auditMatrix" class="space-y-3"></div>
-          </div>
-
-          <div id="tabContentDoc" class="flex-1 hidden flex flex-col">
-            <div class="flex justify-end space-x-2 mb-3">
-              <button onclick="copyDoc()" class="text-xs font-medium px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg">複製公文文字</button>
-            </div>
-            <div id="docOutput" class="flex-1 p-5 bg-neutral-50 border border-neutral-200 rounded-xl font-serif text-sm leading-relaxed text-neutral-800 whitespace-pre-line overflow-y-auto max-h-[480px]">
-              (核對完成後將自動生成簽呈內容)
-            </div>
-          </div>
         </div>
       </section>
 
     </div>
   </main>
 
+  <!-- API 設定彈窗 -->
   <div id="apiModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-neutral-200">
       <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
@@ -152,7 +185,7 @@
       <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full text-xs p-3 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-[#E60012] focus:outline-none">
       <div class="flex justify-end space-x-2">
         <button onclick="clearApiKey()" class="px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg">清除 Key</button>
-        <button onclick="saveApiKey()" class="px-4 py-1.5 text-xs btn-nintendo-red font-bold rounded-lg">儲存設定</button>
+        <button onclick="saveApiKey()" class="px-4 py-1.5 text-xs bg-[#E60012] text-white font-bold rounded-lg hover:bg-red-700">儲存設定</button>
       </div>
     </div>
   </div>
@@ -165,7 +198,7 @@
     assistant_rd: `【助理研發工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 0 年以上研究工作經驗。\n- 成果：需具0件資料處理開發相關作品成果。\n- 非相關系所：軟體開發或專案資料處理經驗2年。`,
     algo_engineer: `【演算法工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：需具4件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
     deputy_engineer: `【演算法副工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 3 年以上研究工作經驗。\n- 成果：需具3件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
-     assistant_engineer: `【演算法助理工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
+    assistant_engineer: `【演算法助理工程師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 經歷：具備 1 年以上研究工作經驗。\n- 成果：需具2件資料處理開發相關作品成果或巨量資料處理相關作品。\n- 推薦：獲兩位中心6職等工程師推薦。`,
     clinical_data_analyst: `【臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所碩士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗2年。`,
     junior_clinical_analyst: `【初級臨床數據分析師進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所學士(含)以上學位。\n- 非相關系所：臨床相關經驗或資料統計處理經驗1年。`,
     senior_data_scientist: `【高階應用資料科學家進用規範】\n- 學歷：國內外理科、工科、商科、數理、資訊、統計、生醫及相關系所博士學位。\n- 經歷：具備 5 年以上研究工作經驗。\n- 成果：相關文獻論文發表4篇。`,
@@ -239,7 +272,32 @@
     document.getElementById('candidateInput').value = results.join('\n');
   }
 
-// 🤖 呼叫 Gemini API (升級至 Gemini 3.6 Flash)
+  // 🔒 自動去識別化處理函數
+  function anonymizeInputText() {
+    const inputArea = document.getElementById('candidateInput');
+    let text = inputArea.value;
+
+    if (!text || text.trim() === '') {
+      alert('請先輸入或上傳應徵者資料/面試紀錄表！');
+      return;
+    }
+
+    // 1. 身分證字號遮蔽 (1位英文字母 + 9位數字)
+    text = text.replace(/[A-Z][12]\d{8}/gi, '[身分證字號已遮蔽]');
+    // 2. 電子郵件遮蔽 (Email)
+    text = text.replace(/[a-zA-Z0-2._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[Email已遮蔽]');
+    // 3. 手機號碼與電話號碼遮蔽
+    text = text.replace(/(09\d{2}[\s-]?\d{3}[\s-]?\d{3})/g, '[手機號碼已遮蔽]');
+    text = text.replace(/(\(?0\d{1,2}\)?[\s-]?\d{3,4}[\s-]?\d{4})/g, '[電話號碼已遮蔽]');
+    // 4. 生日格式遮蔽
+    text = text.replace(/(\d{2,4}[年\/-]\d{1,2}[月\/-]\d{1,2}[日]?)/g, '[生日日期已遮蔽]');
+
+    inputArea.value = text;
+    document.getElementById('anonOutput').innerText = text;
+    switchTab('anon');
+  }
+
+  // 🤖 呼叫 Gemini API
   async function callGeminiAPI(apiKey, prompt) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     try {
@@ -257,7 +315,7 @@
     }
   }
 
-  // 🚀 執行資格核對與生成公文
+  // 🚀 執行嚴格 AI 資格核對與生成公文 (升級版)
   async function executeAudit() {
     const name = document.getElementById('candidateName').value || '應徵者';
     const dept = document.getElementById('candidateDept').value || '人工智慧暨機器人創新中心';
@@ -270,121 +328,128 @@
     const rules = document.getElementById('rulesInput').value;
     const candidateInfo = document.getElementById('candidateInput').value;
 
-    const today = new Date();
-    const rocYear = today.getFullYear() - 1911;
-    const dateStr = `${rocYear} 年 ${today.getMonth() + 1} 月 ${today.getDate()} 日`;
-
-    const candidateText = document.getElementById('candidateInput').value;
-    const isPass = candidateText.includes('第一作者') || candidateText.includes('碩士') || candidateText.includes('博士') || candidateText.includes('附件');
-
     const badge = document.getElementById('resultBadge');
     const overview = document.getElementById('auditOverview');
     const matrix = document.getElementById('auditMatrix');
     const docOutput = document.getElementById('docOutput');
     const apiKey = localStorage.getItem('AIRIC_GEMINI_KEY');
 
-    if (isPass) {
-      badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
-      badge.innerText = '審核結果：完全符合 qualification passed';
+    if (!apiKey) {
+      alert('請先點擊右上角設定 Gemini API Key，才能啟動系統的智慧條件核對功能！');
+      return;
+    }
 
-      overview.innerHTML = `
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="font-bold text-emerald-700 text-sm">✓ 具備進用資格</span>
-            <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
+    switchTab('audit');
+    badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-amber-100 text-amber-800';
+    badge.innerText = '🤖 AI 嚴格比對審查中...';
+    matrix.innerHTML = '<div class="p-4 text-sm text-neutral-500 font-mono">正在交叉比對各項進用門檻與應徵者履歷內容，請稍候...</div>';
+    docOutput.innerText = '等待審核完成後，將自動生成對應公文...';
+
+    const prompt = `
+    你是一位專業嚴謹的醫療院所人資與行政主管。
+    請根據以下【擬聘職位門檻規範】嚴格審核【應徵者履歷與附件資料】。
+    
+    【審核極度重要指示】：
+    必須「完全符合」規範中的每一項要求才算通過！如果規範中明訂需要「推薦信」、「特定年資」或「特定發表數量」，但履歷與附件資料中沒有明確提到或數量不足，請務必判定為「不符合 (isPass: false)」。
+
+    【擬聘單位】：${dept}
+    【應徵者姓名】：${name}
+    【擬聘職稱】：${roleText}
+    【進用門檻規範】：
+    ${rules}
+
+    【應徵者履歷與附件資料】：
+    ${candidateInfo}
+
+    請以純 JSON 格式回傳（不可包含 markdown 標籤，如 \`\`\`json，只要純粹的括號結構），格式如下：
+    {
+      "isPass": true 或 false,
+      "reasonTitle": "核對結果標題 (例如：符合學歷與經歷門檻 / 缺少推薦信及相關經歷)",
+      "reasonDetail": "詳細說明履歷中哪裡符合、哪裡不符合規範。如果不符合，請具體指出缺漏了什麼 (例如：未檢附兩位中心6職等工程師推薦信)",
+      "docText": "如果 isPass 為 true，請撰寫一份標準院內簽呈草稿(需包含主旨、說明、擬辦)；如果 isPass 為 false，請撰寫一份補件通知單草稿(需告知應徵者缺少什麼具體資料)。"
+    }
+    `;
+
+    try {
+      const aiResultStr = await callGeminiAPI(apiKey, prompt);
+      const cleanJsonStr = aiResultStr.replace(/```json/g, '').replace(/```/g, '').trim();
+      const result = JSON.parse(cleanJsonStr);
+
+      if (result.isPass) {
+        badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
+        badge.innerText = '審核結果：完全符合 qualification passed';
+        overview.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-bold text-emerald-700 text-sm">✓ 具備進用資格</span>
+              <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
+            </div>
+            <span class="font-bold text-emerald-600 border-2 border-emerald-500 px-3 py-1 rounded">AIRIC 通過</span>
           </div>
-          <span class="seal-stamp">AIRIC 通過</span>
-        </div>
-      `;
-
-      matrix.innerHTML = `
-        <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
-          <p class="font-bold text-emerald-900">1. 學歷與資歷門檻：符合</p>
-          <p class="text-neutral-600">採計項目：具備相關系所學位與專業資歷。</p>
-        </div>
-        <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
-          <p class="font-bold text-emerald-900">2. 成果作品採計：符合</p>
-          <p class="text-neutral-600">採計項目：已檢附相關開發作品、獲獎或研究成果證明。</p>
-        </div>
-      `;
-
-      // 💡 有 API Key 則由 AI 精準提煉，無則帶入預設範本
-      if (apiKey) {
-        docOutput.innerText = '🤖 Gemini AI 正在精準分析履歷並自動撰寫公文簽呈中，請稍候...';
-
-        const prompt = `
-你是一位專業的醫療院所人資與行政主管，請根據以下資訊撰寫一份標準的院內簽呈。
-
-【擬聘單位】：${dept}
-【應徵者姓名】：${name}
-【擬聘職稱】：${roleText}
-【聘任類型】：${typeText}
-【預算支應】：${fundText}
-【進用門檻規範】：
-${rules}
-
-【應徵者履歷與附件資料】：
-${candidateInfo}
-
-【簽呈格式要求】：
-簽 於 人工智慧暨機器人創新中心 中華民國 ${dateStr}
-
-主旨：因應中心發展，擬請同意聘任 ${name} 先生/女士為 ${roleText}，呈請核示。
-
-說明：
-一、聘任人員背景與專業能力：（請詳細摘要 ${name} 先生/女士的學歷與關鍵專業經歷）
-二、相關成果敘述：（請詳細摘要 ${name} 先生/女士的研究成果、論文發表或獲獎作品集）
-三、${name} 先生/女士專業能力與本中心持續推動智慧醫療系統研發之需求高度契合。為強化本中心專業團隊戰力，擬請同意聘任 ${name} 先生/女士為 [自行填寫] 職等 ${roleText}（採「${typeText}」辦理，所需費用由「${fundText}」支應）。
-四、相關學經歷證明文件如附件。
-
-擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。
-
-請直接輸出公文內文，不要添加 Markdown 標籤或額外開場白。
-`;
-
-        const aiResult = await callGeminiAPI(apiKey, prompt);
-        if (aiResult) docOutput.innerText = aiResult;
-
+        `;
+        matrix.innerHTML = `
+          <div class="p-3 border rounded-lg bg-emerald-50/50 border-emerald-200 text-xs space-y-1">
+            <p class="font-bold text-emerald-900">${result.reasonTitle}</p>
+            <p class="text-neutral-600">${result.reasonDetail}</p>
+          </div>
+        `;
       } else {
-        docOutput.innerText = `簽 於 人工智慧暨機器人創新中心 中華民國 ${dateStr}\n\n主旨：因應中心發展，擬請同意聘任 ${name} 先生/女士為 ${roleText}，呈請核示。\n\n說明：\n一、聘任人員背景與專業能力：查 ${name} 先生/女士具備符合本院規範之專業技術背景與相關經歷。\n二、相關成果敘述：經比對其檢附之資料與作品證明，均符合院內新聘進用門檻規定。\n三、${name} 先生/女士專業能力與本中心持續推動智慧醫療系統研發之需求高度契合。為強化本中心專業團隊戰力，擬請同意聘任 ${name} 先生/女士為 [自行填寫] 職等 ${roleText}（採「${typeText}」辦理，所需費用由「${fundText}」支應）。\n四、相關學經歷證明文件如附件。\n\n擬辦：奉 核可後，移請人力資源室辦理後續聘任與簽約事宜。`;
-      }
-
-    } else {
-      badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-rose-100 text-rose-800';
-      badge.innerText = '審核結果：資格不符 / 資料缺失';
-
-      overview.innerHTML = `
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="font-bold text-rose-700 text-sm">✕ 未達門檻 / 缺少佐證資料</span>
-            <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
+        badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-rose-100 text-rose-800';
+        badge.innerText = '審核結果：資格不符 / 資料缺失';
+        overview.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-bold text-rose-700 text-sm">✕ 未達門檻 / 缺少佐證資料</span>
+              <p class="text-neutral-500 text-[11px] mt-0.5">應徵者：${name} ｜ 聘任類型：${typeText}</p>
+            </div>
+            <span class="border border-rose-300 text-rose-600 font-bold px-2 py-0.5 rounded text-xs">需退補件</span>
           </div>
-          <span class="border border-rose-300 text-rose-600 font-bold px-2 py-0.5 rounded text-xs">需退補件</span>
-        </div>
-      `;
+        `;
+        matrix.innerHTML = `
+          <div class="p-3 border rounded-lg bg-rose-50/50 border-rose-200 text-xs space-y-1">
+            <p class="font-bold text-rose-900">${result.reasonTitle}</p>
+            <p class="text-neutral-600">${result.reasonDetail}</p>
+          </div>
+        `;
+      }
+      docOutput.innerText = result.docText;
 
-      matrix.innerHTML = `
-        <div class="p-3 border rounded-lg bg-rose-50/50 border-rose-200 text-xs space-y-1">
-          <p class="font-bold text-rose-900">1. 成果與經歷證明：缺失</p>
-          <p class="text-neutral-600">檢附資料中未含有清晰之經歷或作品集證明。</p>
-        </div>
-      `;
-
-      docOutput.innerText = `人工智慧暨機器人創新中心 (AIRIC) 新聘人員進用審核補件通知單\n\n受文者：${name} 臺端\n日期：中華民國 ${dateStr}\n\n主旨：關於 臺端應徵本中心 ${roleText} 乙案，經本中心進用資格審核小組比對相關資料，尚有缺失項目，特此通知補件。\n\n說明：\n一、依本中心「${typeText}」審核標準，臺端目前缺漏或未達標之資料如下：\n    1. 請補充相關學經歷證明或成果作品集文件。\n二、請於收到通知後 7 日內將上述資料補齊電子檔並回傳，以利重審本聘任案。`;
+    } catch (error) {
+      console.error("API 審核解析錯誤:", error);
+      alert("AI 審核發生錯誤，可能是網路異常或回傳格式錯誤，請重試。");
+      badge.className = 'text-xs px-3 py-1 rounded-full font-bold bg-neutral-100 text-neutral-800';
+      badge.innerText = '系統錯誤';
+      matrix.innerHTML = '<div class="text-rose-500 text-sm">無法完成比對，請檢查主控台 (Console) 錯誤訊息。</div>';
     }
   }
 
+  // 🔄 頁籤切換邏輯
   function switchTab(type) {
+    const tab1 = document.getElementById('tabContentAudit');
+    const tab2 = document.getElementById('tabContentDoc');
+    const tab3 = document.getElementById('tabContentAnon');
+
+    const btn1 = document.getElementById('tabBtn1');
+    const btn2 = document.getElementById('tabBtn2');
+    const btn3 = document.getElementById('tabBtn3');
+
+    tab1.classList.add('hidden');
+    tab2.classList.add('hidden');
+    tab3.classList.add('hidden');
+
+    btn1.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+    btn2.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+    btn3.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+
     if (type === 'audit') {
-      document.getElementById('tabContentAudit').classList.remove('hidden');
-      document.getElementById('tabContentDoc').classList.add('hidden');
-      document.getElementById('tabBtn1').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
-      document.getElementById('tabBtn2').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
-    } else {
-      document.getElementById('tabContentAudit').classList.add('hidden');
-      document.getElementById('tabContentDoc').classList.remove('hidden');
-      document.getElementById('tabBtn2').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
-      document.getElementById('tabBtn1').className = 'px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+      tab1.classList.remove('hidden');
+      btn1.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
+    } else if (type === 'doc') {
+      tab2.classList.remove('hidden');
+      btn2.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
+    } else if (type === 'anon') {
+      tab3.classList.remove('hidden');
+      btn3.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#0F0F10] text-white';
     }
   }
 
