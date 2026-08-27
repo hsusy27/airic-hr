@@ -4,6 +4,9 @@
 
 ---
 
+## 專案目錄結構
+
+```text
 AIRIC-Qualification-Audit-System/
 ├── assets/
 │   └── AIRIC_Logo.png.png       # 中心 Logo 圖片檔
@@ -11,7 +14,7 @@ AIRIC-Qualification-Audit-System/
 ├── style.css                    # 系統客製化樣式檔 (配合 Tailwind CSS 類別)
 ├── README.md                    # 專案說明文件、個資安全聲明與自主修改指南
 └── LICENSE                      # MIT 開源授權條款文件
-
+```
 ---
 ## 核心功能說明
 
