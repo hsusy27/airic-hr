@@ -351,28 +351,36 @@
     URL.revokeObjectURL(url);
   }
 
-  async function callGeminiAPI(apiKey, prompt, attachments = []) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-    const parts = [{ text: prompt }];
-    
-    if (attachments.length > 0) {
-      parts.push(...attachments);
+async function callGeminiAPI(apiKey, prompt, attachments = []) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+  const parts = [{ text: prompt }];
+  
+  if (attachments.length > 0) {
+    parts.push(...attachments);
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: parts }] })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // 在 Console 詳細印出 Google API 回傳的完整錯誤訊息
+      console.error("Gemini API Error Detail:", data);
+      throw new Error(data.error?.message || `HTTP 錯誤：${response.status}`);
     }
 
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: parts }] })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || 'API 請求失敗');
-      return data.candidates[0].content.parts[0].text;
-    } catch (error) {
-      alert('Gemini AI 連線失敗：' + error.message);
-      return null;
-    }
+    return data.candidates[0].content.parts[0].text;
+  } catch (error) {
+    console.error("Fetch Exception:", error);
+    alert('Gemini AI 連線失敗：' + error.message);
+    return null;
   }
+}
 
   async function executeAudit() {
     const name = document.getElementById('candidateName').value || '應徵者';
